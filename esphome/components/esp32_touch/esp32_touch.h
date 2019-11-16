@@ -2,7 +2,6 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/binary_sensor/binary_sensor.h"
-#include <unordered_map>
 
 #ifdef ARDUINO_ARCH_ESP32
 
@@ -59,25 +58,23 @@ class ESP32TouchComponent : public Component {
 class ESP32TouchBinarySensor : public binary_sensor::BinarySensor {
  public:
   ESP32TouchBinarySensor(const std::string &name, touch_pad_t touch_pad, uint16_t threshold);
-  ESP32TouchBinarySensor(const std::string &name, touch_pad_t touch_pad, uint16_t offset, uint16_t interval,
-                         uint16_t sample_size);
+  ESP32TouchBinarySensor(const std::string &name, touch_pad_t touch_pad, bool at_enabled, uint16_t at_offset);
 
   touch_pad_t get_touch_pad() const { return touch_pad_; }
   uint16_t get_threshold() const { return threshold_; }
   void set_threshold(uint16_t threshold) { threshold_ = threshold; }
   uint16_t get_value() const { return value_; }
-  uint16_t get_offset() const { return offset_; }
-  uint16_t get_interval() const { return interval_; }
-  uint16_t get_sample_size() const { return sample_size_; }
-  void add_sample(uint16_t sample) { samples_[sample]++; }
-  void clear_samples() { samples_.clear(); }
-  uint32_t get_last_run() const { return last_run_; }
-  void set_last_run(uint32_t last_run) { last_run_ = last_run; }
-  uint16_t get_count() const { return count_; }
-  void increment_count() { count_++; }
-  void reset_count() { count_ = 0; }
+  bool at_enabled() const { return at_enabled_; }
+  uint16_t at_get_offset() const { return at_offset_; }
+  void at_add_sample(uint16_t at_sample, uint16_t index) { at_samples_[index] = at_sample; }
+  uint16_t at_get_count() const { return at_count_; }
+  void at_increment_count() { at_count_++; }
+  void at_reset_count() { at_count_ = 0; }
+  uint32_t at_get_last_run() const { return at_last_run_; }
+  void at_set_last_run(uint32_t at_last_run) { at_last_run_ = at_last_run; }
 
-  uint16_t find_most_freq();
+  void at_calculate();
+  bool at_adjust_threshold(uint16_t value);
 
  protected:
   friend ESP32TouchComponent;
@@ -85,12 +82,14 @@ class ESP32TouchBinarySensor : public binary_sensor::BinarySensor {
   touch_pad_t touch_pad_;
   uint16_t threshold_{};
   uint16_t value_;
-  uint16_t offset_;
-  uint16_t interval_;
-  uint16_t sample_size_{};
-  uint16_t count_{};
-  uint32_t last_run_{};
-  std::unordered_map<uint16_t, uint16_t> samples_;
+  bool at_enabled_{false};
+  uint16_t at_offset_;
+  uint16_t at_count_{};
+  uint16_t at_samples_[10];
+  uint16_t at_mean_;
+  uint16_t at_variance_;
+  uint16_t at_max_variance_{};
+  uint32_t at_last_run_{};
 };
 
 }  // namespace esp32_touch

@@ -740,8 +740,6 @@ binary_sensor:
     id: btn_left
     adaptive_threshold:
       offset: 5
-      interval: 1s
-      samples: 10
   - platform: nextion
     page_id: 0
     component_id: 2
