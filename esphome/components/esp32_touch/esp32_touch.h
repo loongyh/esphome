@@ -70,8 +70,6 @@ class ESP32TouchBinarySensor : public binary_sensor::BinarySensor {
   uint16_t at_get_count() const { return at_count_; }
   void at_increment_count() { at_count_++; }
   void at_reset_count() { at_count_ = 0; }
-  uint32_t at_get_last_run() const { return at_last_run_; }
-  void at_set_last_run(uint32_t at_last_run) { at_last_run_ = at_last_run; }
 
   void at_calculate();
   bool at_adjust_threshold(uint16_t value);
@@ -89,7 +87,6 @@ class ESP32TouchBinarySensor : public binary_sensor::BinarySensor {
   uint16_t at_mean_;
   uint16_t at_variance_;
   uint16_t at_max_variance_{};
-  uint32_t at_last_run_{};
 };
 
 }  // namespace esp32_touch

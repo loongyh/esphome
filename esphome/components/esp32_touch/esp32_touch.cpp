@@ -130,19 +130,18 @@ void ESP32TouchComponent::loop() {
     }
 
     // Adaptive threshold 
-    if (child->at_enabled() && now - child->at_get_last_run() > 1000) {
+    if (child->at_enabled()) {
       if (child->at_get_count() < 10) {
         child->at_add_sample(value, child->at_get_count());
         child->at_increment_count();
       } else {
         child->at_calculate();
         bool result = child->at_adjust_threshold(value);
-        if (this->setup_mode_ && result) {
+        if (should_print && result) {
           ESP_LOGD(TAG, "New threshold set: %u", child->get_threshold());
         }
         child->at_reset_count();
       }
-      child->at_set_last_run(now);
     }
   }
 
