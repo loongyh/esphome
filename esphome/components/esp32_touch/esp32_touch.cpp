@@ -127,6 +127,8 @@ void ESP32TouchComponent::loop() {
 
     if (should_print) {
       ESP_LOGD(TAG, "Touch Pad '%s' (T%u): %u", child->get_name().c_str(), child->get_touch_pad(), value);
+      if (child->at_enabled())
+        ESP_LOGD(TAG, "Threshold: %u", child->get_threshold());
     }
 
     // Adaptive threshold 
@@ -136,10 +138,7 @@ void ESP32TouchComponent::loop() {
         child->at_increment_count();
       } else {
         child->at_calculate();
-        bool result = child->at_adjust_threshold(value);
-        if (should_print && result) {
-          ESP_LOGD(TAG, "New threshold set: %u", child->get_threshold());
-        }
+        child->at_adjust_threshold(value);
         child->at_reset_count();
       }
     }
