@@ -2,7 +2,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import binary_sensor
 from esphome.const import (CONF_NAME, CONF_PIN, CONF_THRESHOLD, CONF_ADAPTIVE_THRESHOLD,
-                           CONF_OFFSET, ESP_PLATFORM_ESP32, CONF_ID)
+                           CONF_FILTER_PERIOD, CONF_FACTOR, ESP_PLATFORM_ESP32, CONF_ID)
 from esphome.pins import validate_gpio_pin
 from . import esp32_touch_ns, ESP32TouchComponent
 
@@ -35,7 +35,8 @@ def validate_touch_pad(value):
 ESP32TouchBinarySensor = esp32_touch_ns.class_('ESP32TouchBinarySensor', binary_sensor.BinarySensor)
 
 ADAPTIVE_THRESHOLD_SCHEMA = cv.Schema({
-    cv.Required(CONF_OFFSET): cv.positive_int,
+    cv.Required(CONF_FILTER_PERIOD): cv.positive_time_period,
+    cv.Required(CONF_FACTOR): cv.positive_float
 })
 
 CONFIG_SCHEMA = binary_sensor.BINARY_SENSOR_SCHEMA.extend({
@@ -52,7 +53,7 @@ def to_code(config):
     if CONF_ADAPTIVE_THRESHOLD in config:
         conf = config[CONF_ADAPTIVE_THRESHOLD]
         var = cg.new_Pvariable(config[CONF_ID], config[CONF_NAME], TOUCH_PADS[config[CONF_PIN]],
-                               True, conf.get(CONF_OFFSET))
+                               True, conf.get(CONF_FILTER_PERIOD), conf.get(CONF_FACTOR))
     else:
         var = cg.new_Pvariable(config[CONF_ID], config[CONF_NAME], TOUCH_PADS[config[CONF_PIN]],
                                config[CONF_THRESHOLD])

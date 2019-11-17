@@ -58,21 +58,17 @@ class ESP32TouchComponent : public Component {
 class ESP32TouchBinarySensor : public binary_sensor::BinarySensor {
  public:
   ESP32TouchBinarySensor(const std::string &name, touch_pad_t touch_pad, uint16_t threshold);
-  ESP32TouchBinarySensor(const std::string &name, touch_pad_t touch_pad, bool at_enabled, uint16_t at_offset);
+  ESP32TouchBinarySensor(const std::string &name, touch_pad_t touch_pad, bool at_enabled, uint16_t at_filter_period,
+                          float at_factor);
 
   touch_pad_t get_touch_pad() const { return touch_pad_; }
   uint16_t get_threshold() const { return threshold_; }
   void set_threshold(uint16_t threshold) { threshold_ = threshold; }
   uint16_t get_value() const { return value_; }
   bool at_enabled() const { return at_enabled_; }
-  uint16_t at_get_offset() const { return at_offset_; }
-  void at_add_sample(uint16_t at_sample, uint16_t index) { at_samples_[index] = at_sample; }
-  uint16_t at_get_count() const { return at_count_; }
-  void at_increment_count() { at_count_++; }
-  void at_reset_count() { at_count_ = 0; }
 
-  void at_calculate();
-  bool at_adjust_threshold(uint16_t value);
+  void at_initialize(uint16_t value);
+  void at_filter(uint32_t now, uint16_t value);
 
  protected:
   friend ESP32TouchComponent;
@@ -81,12 +77,14 @@ class ESP32TouchBinarySensor : public binary_sensor::BinarySensor {
   uint16_t threshold_{};
   uint16_t value_;
   bool at_enabled_{false};
-  uint16_t at_offset_;
-  uint16_t at_count_{};
-  uint16_t at_samples_[10];
-  uint16_t at_mean_;
-  uint16_t at_variance_;
-  uint16_t at_max_variance_{};
+  uint16_t at_filter_period_;
+  uint32_t at_filter_last_run_;
+  float at_factor_;
+  float at_median_;
+  float at_stddev_;
+  float at_alpha_;
+  float at_epsilon_m_;
+  float at_epsilon_s_;
 };
 
 }  // namespace esp32_touch

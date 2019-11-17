@@ -22,6 +22,16 @@ void ESP32TouchComponent::setup() {
   for (auto *child : this->children_) {
     // Disable interrupt threshold
     touch_pad_config(child->get_touch_pad(), 0);
+    // Initialize adaptive threshold
+    if (child->at_enabled()) {
+      uint16_t value;
+      if (this->iir_filter_enabled_()) {
+        touch_pad_read_filtered(child->get_touch_pad(), &value);
+      } else {
+        touch_pad_read(child->get_touch_pad(), &value);
+      }
+      child->at_initialize(value);
+    }
   }
 }
 
@@ -105,8 +115,7 @@ void ESP32TouchComponent::dump_config() {
     ESP_LOGCONFIG(TAG, "    Pad: T%d", child->get_touch_pad());
     ESP_LOGCONFIG(TAG, "    Threshold: %u", child->get_threshold());
     if (child->at_enabled()) {
-      ESP_LOGCONFIG(TAG, "    Adaptive threshold:");
-      ESP_LOGCONFIG(TAG, "      Offset: %u", child->at_get_offset());
+      ESP_LOGCONFIG(TAG, "    Adaptive Threshold ENABLED!");
     }
   }
 }
@@ -133,14 +142,7 @@ void ESP32TouchComponent::loop() {
 
     // Adaptive threshold 
     if (child->at_enabled()) {
-      if (child->at_get_count() < 10) {
-        child->at_add_sample(value, child->at_get_count());
-        child->at_increment_count();
-      } else {
-        child->at_calculate();
-        child->at_adjust_threshold(value);
-        child->at_reset_count();
-      }
+      child->at_filter(now, value);
     }
   }
 
@@ -160,34 +162,44 @@ void ESP32TouchComponent::on_shutdown() {
 
 ESP32TouchBinarySensor::ESP32TouchBinarySensor(const std::string &name, touch_pad_t touch_pad, uint16_t threshold)
     : BinarySensor(name), touch_pad_(touch_pad), threshold_(threshold) {}
-ESP32TouchBinarySensor::ESP32TouchBinarySensor(const std::string &name, touch_pad_t touch_pad, bool at_enabled, uint16_t at_offset)
+ESP32TouchBinarySensor::ESP32TouchBinarySensor(const std::string &name, touch_pad_t touch_pad, bool at_enabled,
+                                                uint16_t at_filter_period, float at_factor)
     : BinarySensor(name),
       touch_pad_(touch_pad),
       at_enabled_(at_enabled),
-      at_offset_(at_offset) {}
+      at_filter_period_(at_filter_period),
+      at_factor_(at_factor) {}
 
-void ESP32TouchBinarySensor::at_calculate() {
-  uint16_t total = 0;
-  for (auto i : this->at_samples_) {
-    total += i;
-  }
-  this->at_mean_ = total / 10;
-  total = 0;
-  for (auto i : this->at_samples_) {
-    total += (i - this->at_mean_) * (i - this->at_mean_);
-  }
-  this->at_variance_ = total / 10;
+void ESP32TouchBinarySensor::at_initialize(uint16_t value) {
+  float at_sample_period_ = (float)this->at_filter_period_ / 10.0;
+  this->at_alpha_ = at_sample_period_ / (float)this->at_filter_period_;
+  this->at_epsilon_m_ = (float)value * this->at_alpha_;
+  this->at_epsilon_s_ = 0.1 * this->at_alpha_;
+  this->at_median_ = (float)value;
 }
 
-bool ESP32TouchBinarySensor::at_adjust_threshold(uint16_t value) {
-  bool variance_in_range = this->at_variance_ <= this->at_max_variance_;
-  bool diff_in_range = (value - this->at_mean_) * (value - this->at_mean_) <= this->at_max_variance_;
-  this->at_max_variance_ = this->at_variance_ + this->at_variance_ / 10;
-
-  if (variance_in_range && diff_in_range) {
-    this->threshold_ = this->at_mean_ - this->at_offset_;
-    return true;
-  } else return false;
+void ESP32TouchBinarySensor::at_filter(uint32_t now, uint16_t value) {
+  if (now - this->at_filter_last_run_ > this->at_filter_period_) {
+    this->at_epsilon_m_ = this->at_median_ * this->at_alpha_;
+    if (this->at_stddev_ < 0.1) {
+      this->at_epsilon_s_ = 0.1;
+    } else {
+      this->at_epsilon_s_ = this->at_stddev_ * this->at_alpha_;
+    }
+    if (value > this->at_median_) {
+      this->at_median_ += this->at_epsilon_m_;
+    } else {
+      this->at_median_ -= this->at_epsilon_m_;
+    }
+    uint16_t diff = value - this->at_median_;
+    if (diff * diff > this->at_stddev_ * this->at_stddev_) {
+      this->at_stddev_ += this->at_epsilon_s_;
+    } else {
+      this->at_stddev_ -= min(this->at_epsilon_s_, this->at_stddev_);
+    }
+    this->threshold_ = this->at_median_ - this->at_factor_ * this->at_stddev_;
+    this->at_filter_last_run_ = now;
+  }
 }
 
 }  // namespace esp32_touch
