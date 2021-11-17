@@ -308,12 +308,24 @@ void FingerprintGrowComponent::aura_led_control(uint8_t state, uint8_t speed, ui
       ESP_LOGD(TAG, "Aura LED set");
       this->last_aura_led_control_ = millis();
       this->last_aura_led_duration_ = 10 * speed * count;
+      if (this->aura_led_reset_)
+        this->reset_();
       break;
     case PACKET_RCV_ERR:
     case TIMEOUT:
       break;
     default:
       ESP_LOGE(TAG, "Try led_control instead");
+      break;
+  }
+}
+
+void FingerprintGrowComponent::reset_() {
+  ESP_LOGD(TAG, "Sending reset command");
+  this->data_ = {SOFT_RESET};
+  switch (this->send_command_()) {
+    case OK:
+      ESP_LOGD(TAG, "Device is resetting");
       break;
   }
 }

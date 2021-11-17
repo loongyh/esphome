@@ -34,6 +34,7 @@ enum GrowCommand {
   HI_SPEED_SEARCH = 0x1B,
   TEMPLATE_COUNT = 0x1D,
   AURA_CONFIG = 0x35,
+  SOFT_RESET = 0x3D,
   LED_ON = 0x50,
   LED_OFF = 0x51,
 };
@@ -93,6 +94,7 @@ class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevic
   void set_sensing_pin(GPIOPin *sensing_pin) { this->sensing_pin_ = sensing_pin; }
   void set_password(uint32_t password) { this->password_ = password; }
   void set_new_password(uint32_t new_password) { this->new_password_ = &new_password; }
+  void set_aura_led_reset(bool reset) { this->aura_led_reset_ = reset; }
   void set_fingerprint_count_sensor(sensor::Sensor *fingerprint_count_sensor) {
     this->fingerprint_count_sensor_ = fingerprint_count_sensor;
   }
@@ -143,6 +145,7 @@ class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevic
   bool set_password_();
   bool get_parameters_();
   void get_fingerprint_count_();
+  void reset_();
   uint8_t send_command_();
 
   std::vector<uint8_t> data_ = {};
@@ -157,6 +160,7 @@ class FingerprintGrowComponent : public PollingComponent, public uart::UARTDevic
   bool waiting_removal_ = false;
   uint32_t last_aura_led_control_ = 0;
   uint16_t last_aura_led_duration_ = 0;
+  bool aura_led_reset_ = false;
   sensor::Sensor *fingerprint_count_sensor_{nullptr};
   sensor::Sensor *status_sensor_{nullptr};
   sensor::Sensor *capacity_sensor_{nullptr};

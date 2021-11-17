@@ -16,6 +16,7 @@ from esphome.const import (
     CONF_ON_FINGER_SCAN_MATCHED,
     CONF_ON_FINGER_SCAN_UNMATCHED,
     CONF_PASSWORD,
+    CONF_RESET,
     CONF_SENSING_PIN,
     CONF_SPEED,
     CONF_STATE,
@@ -90,6 +91,7 @@ CONFIG_SCHEMA = (
             cv.Optional(CONF_SENSING_PIN): pins.gpio_input_pin_schema,
             cv.Optional(CONF_PASSWORD): cv.uint32_t,
             cv.Optional(CONF_NEW_PASSWORD): cv.uint32_t,
+            cv.Optional(CONF_RESET): cv.boolean,
             cv.Optional(CONF_ON_FINGER_SCAN_MATCHED): automation.validate_automation(
                 {
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(
@@ -143,6 +145,10 @@ async def to_code(config):
     if CONF_NEW_PASSWORD in config:
         new_password = config[CONF_NEW_PASSWORD]
         cg.add(var.set_new_password(new_password))
+
+    if CONF_RESET in config:
+        reset = config[CONF_RESET]
+        cg.add(var.set_aura_led_reset(reset))
 
     if CONF_SENSING_PIN in config:
         sensing_pin = await cg.gpio_pin_expression(config[CONF_SENSING_PIN])
