@@ -16,7 +16,6 @@ from esphome.const import (
     CONF_ON_FINGER_SCAN_MATCHED,
     CONF_ON_FINGER_SCAN_UNMATCHED,
     CONF_PASSWORD,
-    CONF_RESET,
     CONF_SENSING_PIN,
     CONF_SPEED,
     CONF_STATE,
@@ -29,6 +28,7 @@ AUTO_LOAD = ["binary_sensor", "sensor"]
 MULTI_CONF = True
 
 CONF_FINGERPRINT_GROW_ID = "fingerprint_grow_id"
+CONF_RESET = "reset"
 
 fingerprint_grow_ns = cg.esphome_ns.namespace("fingerprint_grow")
 FingerprintGrowComponent = fingerprint_grow_ns.class_(
