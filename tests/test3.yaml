@@ -284,6 +284,9 @@ uart:
     rx_pin: GPIO5
     baud_rate: 9600
 
+uart_multi:
+  uart_id: uart6
+
 modbus:
   uart_id: uart1
 
@@ -1296,6 +1299,15 @@ cover:
       - output.set_level:
           id: out
           level: !lambda 'return pos;'
+  - platform: dooya
+    name: Dooya Cover
+    address: 0xFEFE
+  - platform: chenyang
+    name: Chenyang Cover
+    address: 0xFF
+  - platform: gm40
+    name: GM40 Cover
+    address: 0x00
 
 output:
   - platform: esp8266_pwm
