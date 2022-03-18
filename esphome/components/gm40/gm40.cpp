@@ -149,8 +149,12 @@ void GM40::process_status_() {
   if (calc_checksum(frame) == this->rx_buffer_.end()[-1]) {
     bool publish_state = false;
     float pos = 0.5f;
-    if (this->rx_buffer_[11] != 0xFF)
+    if (this->rx_buffer_[11] != UNKNOWN_POSITION) {
       pos = clamp((float) (100 - this->rx_buffer_[11]) / 100, 0.0f, 1.0f);
+      if (this->unknown_position_binary_sensor_ != nullptr)
+        this->unknown_position_binary_sensor_->publish_state(false);
+    } else if (this->unknown_position_binary_sensor_ != nullptr)
+      this->unknown_position_binary_sensor_->publish_state(true);
     if (this->position != pos) {
       this->position = pos;
       publish_state = true;
@@ -182,6 +186,7 @@ void GM40::send_command_(const uint8_t *data, uint8_t len) {
 void GM40::dump_config() {
   ESP_LOGCONFIG(TAG, "GM40:");
   ESP_LOGCONFIG(TAG, "  Address: 0x%02X", this->address_);
+  LOG_BINARY_SENSOR(TAG, "  Unknown Position", this->unknown_position_binary_sensor_);
 }
 
 }  // namespace gm40

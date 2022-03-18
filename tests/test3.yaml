@@ -905,6 +905,12 @@ binary_sensor:
     on_press:
       then:
         - pzemac.reset_energy: pzemac1
+  - platform: chenyang
+    unknown_position:
+      name: Chenyang Unknown Position
+  - platform: gm40
+    unknown_position:
+      name: GM40 Unknown Position
 
 globals:
   - id: my_global_string

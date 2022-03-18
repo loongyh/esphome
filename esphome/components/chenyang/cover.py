@@ -4,8 +4,9 @@ from esphome.components import cover, uart_multi
 from esphome.const import CONF_ADDRESS, CONF_ID
 
 CODEOWNERS = ["@loongyh"]
-
 AUTO_LOAD = ["uart_multi"]
+
+CONF_CHENYANG_ID = "chenyang_id"
 
 chenyang_ns = cg.esphome_ns.namespace("chenyang")
 Chenyang = chenyang_ns.class_(

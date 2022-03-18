@@ -4,8 +4,9 @@ from esphome.components import cover, uart_multi
 from esphome.const import CONF_ADDRESS, CONF_ID
 
 CODEOWNERS = ["@loongyh"]
-
 AUTO_LOAD = ["uart_multi"]
+
+CONF_GM40_ID = "gm40_id"
 
 dooya_ns = cg.esphome_ns.namespace("gm40")
 GM40 = dooya_ns.class_("GM40", cover.Cover, cg.Component, uart_multi.UARTMultiDevice)

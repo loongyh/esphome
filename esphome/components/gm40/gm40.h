@@ -2,6 +2,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/cover/cover.h"
+#include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/uart_multi/uart_multi.h"
 
 namespace esphome {
@@ -9,6 +10,7 @@ namespace gm40 {
 
 static const uint8_t START_CODE_H = 0x5A;
 static const uint8_t START_CODE_L = 0xA5;
+static const uint8_t UNKNOWN_POSITION = 0xFF;
 
 enum Command : uint8_t {
   READ = 0x03,
@@ -27,6 +29,9 @@ class GM40 : public cover::Cover, public Component, public uart_multi::UARTMulti
   void dump_config() override;
 
   void set_address(uint8_t address) { this->address_ = address; }
+  void set_unknown_position_binary_sensor(binary_sensor::BinarySensor *unknown_position_binary_sensor) {
+    this->unknown_position_binary_sensor_ = unknown_position_binary_sensor;
+  }
   void send_update() override;
   void on_uart_multi_byte(uint8_t byte) override;
   cover::CoverTraits get_traits() override;
@@ -38,6 +43,7 @@ class GM40 : public cover::Cover, public Component, public uart_multi::UARTMulti
   void send_command_(const uint8_t *data, uint8_t len);
 
   uint8_t address_{0x00};
+  binary_sensor::BinarySensor *unknown_position_binary_sensor_{nullptr};
   std::vector<uint8_t> rx_buffer_;
   float target_position_{0};
 };

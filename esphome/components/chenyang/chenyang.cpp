@@ -148,8 +148,12 @@ void Chenyang::process_status_() {
       return;
   }
   float pos = 0.5f;
-  if (this->rx_buffer_[3] != 0x6E)
+  if (this->rx_buffer_[3] != UNKNOWN_POSITION) {
     pos = clamp((float) this->rx_buffer_[3] / 100, 0.0f, 1.0f);
+    if (this->unknown_position_binary_sensor_ != nullptr)
+      this->unknown_position_binary_sensor_->publish_state(false);
+  } else if (this->unknown_position_binary_sensor_ != nullptr)
+    this->unknown_position_binary_sensor_->publish_state(true);
   if (this->position != pos) {
     this->position = pos;
     publish_state = true;
@@ -171,6 +175,7 @@ void Chenyang::send_command_(const uint8_t *data, uint8_t len) {
 void Chenyang::dump_config() {
   ESP_LOGCONFIG(TAG, "Chenyang:");
   ESP_LOGCONFIG(TAG, "  Address: 0x%02X", this->address_);
+  LOG_BINARY_SENSOR(TAG, "  Unknown Position", this->unknown_position_binary_sensor_);
 }
 
 }  // namespace chenyang
