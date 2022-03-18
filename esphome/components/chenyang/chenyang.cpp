@@ -175,7 +175,7 @@ void Chenyang::send_command_(const uint8_t *data, uint8_t len) {
 void Chenyang::dump_config() {
   ESP_LOGCONFIG(TAG, "Chenyang:");
   ESP_LOGCONFIG(TAG, "  Address: 0x%02X", this->address_);
-  LOG_BINARY_SENSOR(TAG, "  Unknown Position", this->unknown_position_binary_sensor_);
+  LOG_BINARY_SENSOR("  ", "Binary Sensor:", this->unknown_position_binary_sensor_);
 }
 
 }  // namespace chenyang
